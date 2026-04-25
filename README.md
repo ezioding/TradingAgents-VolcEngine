@@ -28,6 +28,7 @@
 # TradingAgents: Multi-Agents LLM Financial Trading Framework
 
 ## News
+- [2026-04] **TradingAgents v0.2.4** released with **VolcEngine (火山方舟)** LLM provider support, enabling seamless integration with ByteDance's Ark Code models for China region users.
 - [2026-03] **TradingAgents v0.2.3** released with multi-language support, GPT-5.4 family models, unified model catalog, backtesting date fidelity, and proxy support.
 - [2026-03] **TradingAgents v0.2.2** released with GPT-5.4/Gemini 3.1/Claude 4.6 model coverage, five-tier rating scale, OpenAI Responses API, Anthropic effort control, and cross-platform stability.
 - [2026-02] **TradingAgents v0.2.0** released with multi-provider LLM support (GPT-5.x, Gemini 3.x, Claude 4.x, Grok 4.x) and improved system architecture.
@@ -144,6 +145,7 @@ export DEEPSEEK_API_KEY=...        # DeepSeek
 export DASHSCOPE_API_KEY=...       # Qwen (Alibaba DashScope)
 export ZHIPU_API_KEY=...           # GLM (Zhipu)
 export OPENROUTER_API_KEY=...      # OpenRouter
+export VOLCENGINE_API_KEY=...      # 火山方舟 VolcEngine
 export ALPHA_VANTAGE_API_KEY=...   # Alpha Vantage
 ```
 
@@ -183,7 +185,7 @@ An interface will appear showing results as they load, letting you track the age
 
 ### Implementation Details
 
-We built TradingAgents with LangGraph to ensure flexibility and modularity. The framework supports multiple LLM providers: OpenAI, Google, Anthropic, xAI, DeepSeek, Qwen (Alibaba DashScope), GLM (Zhipu), OpenRouter, Ollama for local models, and Azure OpenAI for enterprise.
+We built TradingAgents with LangGraph to ensure flexibility and modularity. The framework supports multiple LLM providers: OpenAI, Google, Anthropic, xAI, DeepSeek, Qwen (Alibaba DashScope), GLM (Zhipu), OpenRouter, Ollama for local models, Azure OpenAI for enterprise, and **VolcEngine (火山方舟)** for China region.
 
 ### Python Usage
 
@@ -207,13 +209,34 @@ from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
 
 config = DEFAULT_CONFIG.copy()
-config["llm_provider"] = "openai"        # openai, google, anthropic, xai, deepseek, qwen, glm, openrouter, ollama, azure
+config["llm_provider"] = "openai"        # openai, google, anthropic, xai, deepseek, qwen, glm, openrouter, ollama, azure, volcengine
 config["deep_think_llm"] = "gpt-5.4"     # Model for complex reasoning
 config["quick_think_llm"] = "gpt-5.4-mini" # Model for quick tasks
 config["max_debate_rounds"] = 2
 
 ta = TradingAgentsGraph(debug=True, config=config)
 _, decision = ta.propagate("NVDA", "2026-01-15")
+print(decision)
+```
+
+#### 使用火山方舟 (VolcEngine) 示例
+
+```python
+from tradingagents.graph.trading_graph import TradingAgentsGraph
+from tradingagents.default_config import DEFAULT_CONFIG
+import os
+
+# 设置火山方舟 API Key (或在 .env 文件中配置)
+os.environ["VOLCENGINE_API_KEY"] = "your-api-key-here"
+
+config = DEFAULT_CONFIG.copy()
+config["llm_provider"] = "volcengine"
+config["deep_think_llm"] = "ark-code-latest"
+config["quick_think_llm"] = "ark-code-latest"
+config["output_language"] = "Chinese"  # 中文输出
+
+ta = TradingAgentsGraph(debug=True, config=config)
+_, decision = ta.propagate("NVDA", "2024-05-10")
 print(decision)
 ```
 
