@@ -18,6 +18,24 @@ class NormalizedChatOpenAI(ChatOpenAI):
     def invoke(self, input, config=None, **kwargs):
         return normalize_content(super().invoke(input, config, **kwargs))
 
+
+class DeepSeekChatOpenAI(ChatOpenAI):
+    """ChatOpenAI wrapper for DeepSeek API compatibility.
+
+    DeepSeek reasoning models require special handling of the
+    `reasoning_content` field in multi-turn conversations.
+    This wrapper ensures compatibility by disabling unsupported features.
+    """
+
+    def __init__(self, **kwargs):
+        # DeepSeek does not support Responses API, disable it explicitly
+        kwargs["use_responses_api"] = False
+        super().__init__(**kwargs)
+
+    def invoke(self, input, config=None, **kwargs):
+        result = super().invoke(input, config, **kwargs)
+        return normalize_content(result)
+
 # Kwargs forwarded from user config to ChatOpenAI
 _PASSTHROUGH_KWARGS = (
     "timeout", "max_retries", "reasoning_effort",
@@ -82,8 +100,12 @@ class OpenAIClient(BaseLLMClient):
         # all model families. Third-party providers use Chat Completions.
         if self.provider == "openai":
             llm_kwargs["use_responses_api"] = True
-
-        return NormalizedChatOpenAI(**llm_kwargs)
+            return NormalizedChatOpenAI(**llm_kwargs)
+        elif self.provider == "deepseek":
+            # DeepSeek requires special handling for reasoning models
+            return DeepSeekChatOpenAI(**llm_kwargs)
+        else:
+            return NormalizedChatOpenAI(**llm_kwargs)
 
     def validate_model(self) -> bool:
         """Validate model for the provider."""
